@@ -13,9 +13,12 @@ var is = {
     isText: false,
     isImage: false,
     isPdf: false,
+    isYourNewToolIconSelected: false,
 
     set: function(shape) {
         var cache = this;
+
+        cache.isYourNewToolIconSelected = false;
 
         cache.isLine = cache.isArrow = cache.isArc = cache.isDragLastPath = cache.isDragAllPaths = cache.isRectangle = cache.isQuadraticCurve = cache.isBezierCurve = cache.isPencil = cache.isMarker = cache.isEraser = cache.isText = cache.isImage = cache.isPdf = false;
         cache['is' + shape] = true;
@@ -43,7 +46,7 @@ function addEvent(element, eventType, callback) {
 }
 
 function find(selector) {
-    return document.getElementById(selector);
+    return document.getElementsByTagName('iframe')[0].contentWindow.document.getElementById(selector);
 }
 
 var points = [],
@@ -58,8 +61,9 @@ var points = [],
     lineJoin = 'round';
 
 function getContext(id) {
-    var canv = find(id),
-        ctx = canv.getContext('2d');
+    var canv = find(id);
+    console.log(id, canv);
+    var ctx = canv.getContext('2d');
 
     canv.setAttribute('width', innerWidth);
     canv.setAttribute('height', innerHeight);
@@ -155,6 +159,10 @@ var common = {
             }
 
             if (p[0] === 'rect') {
+                tempArray[i] = [this.strokeOrFill(p[2]) + '\n' + 'context.strokeRect(' + point[0] + ', ' + point[1] + ',' + point[2] + ',' + point[3] + ');\n' + 'context.fillRect(' + point[0] + ', ' + point[1] + ',' + point[2] + ',' + point[3] + ');'];
+            }
+
+            if (p[0] === 'new-tool-icon') {
                 tempArray[i] = [this.strokeOrFill(p[2]) + '\n' + 'context.strokeRect(' + point[0] + ', ' + point[1] + ',' + point[2] + ',' + point[3] + ');\n' + 'context.fillRect(' + point[0] + ', ' + point[1] + ',' + point[2] + ',' + point[3] + ');'];
             }
 
@@ -265,6 +273,15 @@ var common = {
             }
 
             if (p[0] === 'rect') {
+                output += this.shortenHelper(p[0], [
+                    getPoint(point[0], x, 'x'),
+                    getPoint(point[1], y, 'y'),
+                    getPoint(point[2], x, 'x'),
+                    getPoint(point[3], y, 'y')
+                ], p[2]);
+            }
+
+            if (p[0] === 'new-tool-icon') {
                 output += this.shortenHelper(p[0], [
                     getPoint(point[0], x, 'x'),
                     getPoint(point[1], y, 'y'),

@@ -31,7 +31,8 @@ function CanvasDesigner() {
         lineWidth: true,
         colorsPicker: true,
         extraOptions: true,
-        code: true
+        code: true,
+        yourNewToolIcon: true,
     };
 
     designer.icons = {
@@ -56,7 +57,8 @@ function CanvasDesigner() {
         lineWidth: null,
         colorsPicker: null,
         extraOptions: null,
-        code: null
+        code: null,
+        yourNewToolIcon: null
     };
 
     var selectedIcon = 'pencil';

@@ -80,6 +80,25 @@ var dragHelper = {
                 }
             }
 
+            if (p[0] === 'new-tool-icon') {
+
+                if (dHelper.isPointInPath(x, y, point[0], point[1])) {
+                    g.pointsToMove = 'stretch-first';
+                }
+
+                if (dHelper.isPointInPath(x, y, point[0] + point[2], point[1])) {
+                    g.pointsToMove = 'stretch-second';
+                }
+
+                if (dHelper.isPointInPath(x, y, point[0], point[1] + point[3])) {
+                    g.pointsToMove = 'stretch-third';
+                }
+
+                if (dHelper.isPointInPath(x, y, point[0] + point[2], point[1] + point[3])) {
+                    g.pointsToMove = 'stretch-last';
+                }
+            }
+
             if (p[0] === 'image') {
 
                 if (dHelper.isPointInPath(x, y, point[1], point[2])) {

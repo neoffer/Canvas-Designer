@@ -23,6 +23,8 @@ addEvent(canvas, isTouch ? 'touchstart mousedown' : 'mousedown', function(e) {
     else if (cache.isArrow) arrowHandler.mousedown(e);
     else if (cache.isMarker) markerHandler.mousedown(e);
 
+    else if (is.isYourNewToolIconSelected) yourNewToolIconHandler.mousedown(e);
+
     !cache.isPdf && drawHelper.redraw();
 
     preventStopEvent(e);
@@ -72,6 +74,8 @@ addEvent(canvas, isTouch ? 'touchend touchcancel mouseup' : 'mouseup', function(
     else if (cache.isArrow) arrowHandler.mouseup(e);
     else if (cache.isMarker) markerHandler.mouseup(e);
 
+    else if (is.isYourNewToolIconSelected) yourNewToolIconHandler.mouseup(e);
+
     !cache.isPdf && drawHelper.redraw();
 
     syncPoints(is.isDragAllPaths || is.isDragLastPath ? true : false);
@@ -100,6 +104,8 @@ addEvent(canvas, isTouch ? 'touchmove mousemove' : 'mousemove', function(e) {
     else if (cache.isPdf) pdfHandler.mousedown(e);
     else if (cache.isArrow) arrowHandler.mousemove(e);
     else if (cache.isMarker) markerHandler.mousemove(e);
+
+    else if (is.isYourNewToolIconSelected) yourNewToolIconHandler.mousemove(e);
 
     preventStopEvent(e);
 });

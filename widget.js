@@ -1,4 +1,4 @@
-// Last time updated: 2019-03-08 2:53:41 PM UTC
+// Last time updated: 2021-03-03 2:52:00 PM UTC
 
 // _______________
 // Canvas-Designer
@@ -24,9 +24,12 @@
         isText: false,
         isImage: false,
         isPdf: false,
+        isYourNewToolIconSelected: false,
 
         set: function(shape) {
             var cache = this;
+
+            cache.isYourNewToolIconSelected = false;
 
             cache.isLine = cache.isArrow = cache.isArc = cache.isDragLastPath = cache.isDragAllPaths = cache.isRectangle = cache.isQuadraticCurve = cache.isBezierCurve = cache.isPencil = cache.isMarker = cache.isEraser = cache.isText = cache.isImage = cache.isPdf = false;
             cache['is' + shape] = true;
@@ -69,8 +72,9 @@
         lineJoin = 'round';
 
     function getContext(id) {
-        var canv = find(id),
-            ctx = canv.getContext('2d');
+        var canv = find(id);
+        console.log(id, canv);
+        var ctx = canv.getContext('2d');
 
         canv.setAttribute('width', innerWidth);
         canv.setAttribute('height', innerHeight);
@@ -166,6 +170,10 @@
                 }
 
                 if (p[0] === 'rect') {
+                    tempArray[i] = [this.strokeOrFill(p[2]) + '\n' + 'context.strokeRect(' + point[0] + ', ' + point[1] + ',' + point[2] + ',' + point[3] + ');\n' + 'context.fillRect(' + point[0] + ', ' + point[1] + ',' + point[2] + ',' + point[3] + ');'];
+                }
+
+                if (p[0] === 'new-tool-icon') {
                     tempArray[i] = [this.strokeOrFill(p[2]) + '\n' + 'context.strokeRect(' + point[0] + ', ' + point[1] + ',' + point[2] + ',' + point[3] + ');\n' + 'context.fillRect(' + point[0] + ', ' + point[1] + ',' + point[2] + ',' + point[3] + ');'];
                 }
 
@@ -276,6 +284,15 @@
                 }
 
                 if (p[0] === 'rect') {
+                    output += this.shortenHelper(p[0], [
+                        getPoint(point[0], x, 'x'),
+                        getPoint(point[1], y, 'y'),
+                        getPoint(point[2], x, 'x'),
+                        getPoint(point[3], y, 'y')
+                    ], p[2]);
+                }
+
+                if (p[0] === 'new-tool-icon') {
                     output += this.shortenHelper(p[0], [
                         getPoint(point[0], x, 'x'),
                         getPoint(point[1], y, 'y'),
@@ -837,6 +854,13 @@
             context.bezierCurveTo(point[2], point[3], point[4], point[5], point[6], point[7]);
 
             this.handleOptions(context, options);
+        },
+
+        yourNewToolIcon: function(context, point, options) {
+            this.handleOptions(context, options, true);
+
+            context.strokeRect(point[0], point[1], point[2], point[3]);
+            context.fillRect(point[0], point[1], point[2], point[3]);
         }
     };
 
@@ -904,6 +928,25 @@
                 }
 
                 if (p[0] === 'rect') {
+
+                    if (dHelper.isPointInPath(x, y, point[0], point[1])) {
+                        g.pointsToMove = 'stretch-first';
+                    }
+
+                    if (dHelper.isPointInPath(x, y, point[0] + point[2], point[1])) {
+                        g.pointsToMove = 'stretch-second';
+                    }
+
+                    if (dHelper.isPointInPath(x, y, point[0], point[1] + point[3])) {
+                        g.pointsToMove = 'stretch-third';
+                    }
+
+                    if (dHelper.isPointInPath(x, y, point[0] + point[2], point[1] + point[3])) {
+                        g.pointsToMove = 'stretch-last';
+                    }
+                }
+
+                if (p[0] === 'new-tool-icon') {
 
                     if (dHelper.isPointInPath(x, y, point[0], point[1])) {
                         g.pointsToMove = 'stretch-first';
@@ -2498,12 +2541,17 @@
 
     var zoomHandler = {
         scale: 1.0,
+        lastZoomState: null,
         up: function(e) {
+            this.scale = this.lastZoomState !== 'up' ? 1 : this.scale;
             this.scale += .01;
+            this.lastZoomState = 'up';
             this.apply();
         },
         down: function(e) {
+            this.scale = this.lastZoomState !== 'down' ? 1 : this.scale;
             this.scale -= .01;
+            this.lastZoomState = 'down';
             this.apply();
         },
         apply: function() {
@@ -2518,7 +2566,7 @@
             },
             down: function(ctx) {
                 ctx.font = '22px Verdana';
-                ctx.strokeText('-', 15, 30);
+                ctx.strokeText('-', 10, 30);
             }
         }
     };
@@ -2812,6 +2860,46 @@
         }
     };
 
+    var yourNewToolIconHandler = {
+        ismousedown: false,
+        prevX: 0,
+        prevY: 0,
+        mousedown: function(e) {
+            var x = e.pageX - canvas.offsetLeft,
+                y = e.pageY - canvas.offsetTop;
+
+            var t = this;
+
+            t.prevX = x;
+            t.prevY = y;
+
+            t.ismousedown = true;
+        },
+        mouseup: function(e) {
+            var x = e.pageX - canvas.offsetLeft,
+                y = e.pageY - canvas.offsetTop;
+
+            var t = this;
+            if (t.ismousedown) {
+                points[points.length] = ['rect', [t.prevX, t.prevY, x - t.prevX, y - t.prevY], drawHelper.getOptions()];
+
+                t.ismousedown = false;
+            }
+
+        },
+        mousemove: function(e) {
+            var x = e.pageX - canvas.offsetLeft,
+                y = e.pageY - canvas.offsetTop;
+
+            var t = this;
+            if (t.ismousedown) {
+                tempContext.clearRect(0, 0, innerWidth, innerHeight);
+
+                drawHelper.rect(tempContext, [t.prevX, t.prevY, x - t.prevX, y - t.prevY]);
+            }
+        }
+    };
+
     var icons = {};
     if (params.icons) {
         try {
@@ -2867,7 +2955,8 @@
         colorsPicker: true,
         extraOptions: true,
         code: true,
-        undo: true
+        undo: true,
+        yourNewToolIcon: true
     };
 
     if (params.tools) {
@@ -3091,6 +3180,22 @@
             decorateLine();
             document.getElementById('line').style.display = 'block';
         }
+
+        function decorateYourNewToolIcon() {
+            var context = getContext('yourNewToolIcon');
+
+            var image = new Image();
+            image.onload = function() {
+                context.drawImage(image, 4, 4, 32, 32);
+                bindEvent(context, 'Rectangle');
+            };
+            image.src = data_uris.rectangle;
+        }
+
+        if (tools.yourNewToolIcon === true) {
+            decorateYourNewToolIcon();
+            document.getElementById('yourNewToolIcon').style.display = 'block';
+        } else document.getElementById('yourNewToolIcon').style.display = 'none';
 
         function decorateUndo() {
             var context = getContext('undo');
@@ -3752,6 +3857,8 @@
         else if (cache.isArrow) arrowHandler.mousedown(e);
         else if (cache.isMarker) markerHandler.mousedown(e);
 
+        else if (is.isYourNewToolIconSelected) yourNewToolIconHandler.mousedown(e);
+
         !cache.isPdf && drawHelper.redraw();
 
         preventStopEvent(e);
@@ -3801,6 +3908,8 @@
         else if (cache.isArrow) arrowHandler.mouseup(e);
         else if (cache.isMarker) markerHandler.mouseup(e);
 
+        else if (is.isYourNewToolIconSelected) yourNewToolIconHandler.mouseup(e);
+
         !cache.isPdf && drawHelper.redraw();
 
         syncPoints(is.isDragAllPaths || is.isDragLastPath ? true : false);
@@ -3829,6 +3938,8 @@
         else if (cache.isPdf) pdfHandler.mousedown(e);
         else if (cache.isArrow) arrowHandler.mousemove(e);
         else if (cache.isMarker) markerHandler.mousemove(e);
+
+        else if (is.isYourNewToolIconSelected) yourNewToolIconHandler.mousemove(e);
 
         preventStopEvent(e);
     });
@@ -4061,21 +4172,23 @@
             }
 
             if (index === -1) {
-                if (points.length && points[points.length - 1][0] === 'pencil') {
+                if (points.length && (points[points.length - 1][0] === 'pencil' || points[points.length - 1][0] === 'marker')) {
                     var newArray = [];
                     var length = points.length;
-                    var reverse = points.reverse();
-                    var ended;
-                    for (var i = 0; i < length; i++) {
-                        var point = reverse[i];
-                        if (point[3] == 'start') {
-                            ended = true;
-                        } else if (ended) {
-                            newArray.push(point);
-                        }
-                    }
 
-                    points = newArray.reverse();
+                    /* modification start*/
+                    var index;
+                    for (var i = 0; i < length; i++) {
+                        var point = points[i];
+                        if (point[3] === 'start') index = i;
+                    }
+                    var copy = [];
+                    for (var i = 0; i < index; i++) {
+                        copy.push(points[i]);
+                    }
+                    points = copy;
+                    /*modification ends*/
+
                     drawHelper.redraw();
                     syncPoints(true);
                     return;

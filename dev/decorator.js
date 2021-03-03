@@ -18,7 +18,8 @@ var tools = {
     colorsPicker: true,
     extraOptions: true,
     code: true,
-    undo: true
+    undo: true,
+    yourNewToolIcon: true
 };
 
 if (params.tools) {
@@ -242,6 +243,22 @@ window.addEventListener('load', function() {
         decorateLine();
         document.getElementById('line').style.display = 'block';
     }
+
+    function decorateYourNewToolIcon() {
+        var context = getContext('yourNewToolIcon');
+
+        var image = new Image();
+        image.onload = function() {
+            context.drawImage(image, 4, 4, 32, 32);
+            bindEvent(context, 'Rectangle');
+        };
+        image.src = data_uris.rectangle;
+    }
+
+    if (tools.yourNewToolIcon === true) {
+        decorateYourNewToolIcon();
+        document.getElementById('yourNewToolIcon').style.display = 'block';
+    } else document.getElementById('yourNewToolIcon').style.display = 'none';
 
     function decorateUndo() {
         var context = getContext('undo');

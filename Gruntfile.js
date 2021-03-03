@@ -40,12 +40,14 @@ module.exports = function(grunt) {
                     'dev/file-selector.js',
                     'dev/image-handler.js',
                     'dev/pdf-handler.js',
+                    
+                    'dev/yourNewToolIcon-handler.js',
 
                     'dev/data-uris.js',
 
                     'dev/decorator.js',
                     'dev/events-handler.js',
-
+                    
                     'dev/share-drawings.js',
                     'dev/webrtc-handler.js',
                     'dev/canvas-designer-widget.js',
